@@ -1,6 +1,10 @@
 # Olá, eu sou Alencar! 👋
 
-💻 Aspirante a Dev Junior  
+---
+
+## Minhas estatísticas
+![Alencar's GitHub stats](https://github-readme-stats.vercel.app/api?username=alencar&show_icons=true&theme=tokyonight)
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=alencar&layout=compact&theme=tokyonight)
 
 ---
 
@@ -12,11 +16,6 @@
 
 ---
 
-## Contatos
-📫 Discord: [Meu Discord](https://discord.gg/usdtC5G4sc).
-
----
-
 ## Minhas linguagens
 ![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)
@@ -24,11 +23,4 @@
 
 
 
----
-
-## Minhas estatísticas
-![Alencar's GitHub stats](https://github-readme-stats.vercel.app/api?username=alencar&show_icons=true&theme=tokyonight)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=alencar&layout=compact&theme=tokyonight)
-
----
 
