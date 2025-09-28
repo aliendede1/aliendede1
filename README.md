@@ -13,7 +13,6 @@
 ---
 
 ## Minhas estatísticas
-![Alencar's GitHub stats](https://github-readme-stats.vercel.app/api?username=alencar&show_icons=true&theme=tokyonight)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=alencar&layout=compact&theme=tokyonight)
+![Status](https://github-readme-stats.vercel.app/api?username=alencar&show_icons=true&theme=tokyonight)
 
 
