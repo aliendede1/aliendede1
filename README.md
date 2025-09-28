@@ -3,9 +3,9 @@
 ---
 
 ## Sobre mim
-- 🔭 Atualmente estudando: **C, C++, Rust**  
+- 🔭 Atualmente estudando: **Python**  
 - 😎 linguagens dominantes: **C**
-- 🌱 Aprendendo: **Fazer Bots para o Discord em C**  
+- 🌱 Aprendendo: **Fazer Bots para o Discord**  
 - 👯 Procurando colaborar em projetos **open source**  
 - ⚡ Curiosidade: Amo **tecnologia e pixel art**
 
