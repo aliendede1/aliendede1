@@ -1,16 +1,12 @@
 #!/bin/bash
 # =======================================================
-#  Script Completo de Instalação - Arch Linux
+#  Configuração completa do i3wm - Arch Linux
 #  Autor: ChatGPT (by Andre)
-#  Funções:
-#   - Configura ambiente de programação completo
-#   - Instala Yay (AUR)
-#   - Instala linguagens: Java, Python, Lua, Node.js, C, C++
-#   - Instala Flatpak + Flathub
-#   - Instala Discord, Spotify, YT Music
-#   - Instala ferramentas multimídia
-#   - Configura SSH + UFW
-#   - Aplica tema dark completo
+#  Recursos:
+#    - Tema dark e transparência
+#    - Print com Flameshot
+#    - Terminal com Win + T
+#    - Atalhos básicos
 # =======================================================
 
 echo "=== Atualizando o sistema ==="
@@ -18,121 +14,115 @@ sudo pacman -Syu --noconfirm
 
 echo "=== Instalando pacotes essenciais ==="
 sudo pacman -S --noconfirm \
-  base-devel \
-  git \
-  vim \
-  curl \
-  wget \
-  unzip \
-  zip \
-  p7zip \
-  htop \
-  neofetch \
-  ufw \
-  openssh \
-  flatpak \
+  i3-wm i3status i3lock dmenu rofi \
+  picom feh flameshot \
+  kitty \
   papirus-icon-theme \
   arc-gtk-theme \
-  gnome-keyring
+  alsa-utils brightnessctl \
+  xclip xdotool
 
 # -------------------------------------------------------
-# INSTALAÇÃO DO YAY (AUR HELPER)
+# CRIANDO CONFIGURAÇÃO DO I3
 # -------------------------------------------------------
-if ! command -v yay &>/dev/null; then
-  echo "=== Instalando Yay (AUR helper) ==="
-  cd /tmp
-  git clone https://aur.archlinux.org/yay.git
-  cd yay
-  makepkg -si --noconfirm
-  cd ..
-  rm -rf yay
-else
-  echo "✅ Yay já está instalado."
-fi
+mkdir -p ~/.config/i3
+
+cat > ~/.config/i3/config <<'EOF'
+# ============================
+# CONFIG I3 CUSTOM DARK
+# ============================
+
+# Mod key (Win)
+set $mod Mod4
+
+# Terminal
+bindsym $mod+t exec kitty
+
+# Fechar janela
+bindsym $mod+q kill
+
+# Mudar foco
+bindsym $mod+j focus left
+bindsym $mod+k focus down
+bindsym $mod+l focus up
+bindsym $mod+semicolon focus right
+
+# Trocar janelas
+bindsym $mod+Shift+j move left
+bindsym $mod+Shift+k move down
+bindsym $mod+Shift+l move up
+bindsym $mod+Shift+semicolon move right
+
+# Tela cheia
+bindsym $mod+f fullscreen toggle
+
+# Rofi launcher
+bindsym $mod+d exec rofi -show drun
+
+# Printscreen
+bindsym Print exec flameshot gui
+bindsym Shift+Print exec flameshot full -p ~/Pictures
+
+# Reiniciar/fechar i3
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Sair do i3?' -b 'Sim' 'i3-msg exit'"
+
+# Ajuste de volume
+bindsym XF86AudioRaiseVolume exec amixer -q set Master 5%+
+bindsym XF86AudioLowerVolume exec amixer -q set Master 5%-
+bindsym XF86AudioMute exec amixer -q set Master toggle
+
+# Brilho
+bindsym XF86MonBrightnessUp exec brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
+
+# Barra de status
+bar {
+    status_command i3status
+    position top
+    font pango:JetBrains Mono 10
+    colors {
+        background #1e1e2e
+        statusline #cdd6f4
+        separator  #89b4fa
+        focused_workspace  #89b4fa #1e1e2e #ffffff
+        inactive_workspace #313244 #1e1e2e #aaaaaa
+    }
+}
+
+# Picom (transparência)
+exec_always --no-startup-id picom --config ~/.config/picom.conf &
+
+# Papel de parede
+exec_always --no-startup-id feh --bg-fill ~/Pictures/Wallpapers/dark_wallpaper.jpg
+EOF
 
 # -------------------------------------------------------
-# SERVIÇOS DE SISTEMA
+# CONFIGURAÇÃO DO PICOM (TRANSPARÊNCIA)
 # -------------------------------------------------------
-echo "=== Ativando e iniciando SSH ==="
-sudo systemctl enable sshd
-sudo systemctl start sshd
-
-echo "=== Configurando firewall (UFW) ==="
-sudo systemctl enable ufw
-sudo ufw allow ssh
-sudo ufw enable
-
-# -------------------------------------------------------
-# FLATPAK + FLATHUB
-# -------------------------------------------------------
-echo "=== Configurando Flathub ==="
-sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-echo "=== Instalando aplicativos Flatpak ==="
-flatpak install -y flathub com.discordapp.Discord
-flatpak install -y flathub com.spotify.Client
-flatpak install -y flathub app.ytmdesktop.ytmdesktop
+mkdir -p ~/.config
+cat > ~/.config/picom.conf <<'EOF'
+backend = "glx";
+vsync = true;
+shadow = true;
+shadow-radius = 10;
+corner-radius = 8.0;
+opacity-rule = ["90:class_g = 'kitty'"];
+EOF
 
 # -------------------------------------------------------
-# LINGUAGENS E FERRAMENTAS DE PROGRAMAÇÃO
+# PAPEL DE PAREDE DARK
 # -------------------------------------------------------
-echo "=== Instalando linguagens e compiladores ==="
-sudo pacman -S --noconfirm \
-  python python-pip \
-  lua luarocks \
-  nodejs npm \
-  jdk17-openjdk \
-  clang gcc gdb make cmake \
-  pkgconf
-
-echo "=== Configurando variáveis do Java ==="
-echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk' | sudo tee /etc/profile.d/java.sh
-source /etc/profile.d/java.sh
-
-# -------------------------------------------------------
-# IDEs E EDITORES (opcional)
-# -------------------------------------------------------
-echo "=== Instalando VS Code (AUR) ==="
-yay -S --noconfirm visual-studio-code-bin
-
-# -------------------------------------------------------
-# FERRAMENTAS MULTIMÍDIA
-# -------------------------------------------------------
-echo "=== Instalando OBS, GIMP, Kdenlive, VLC, etc. ==="
-sudo pacman -S --noconfirm \
-  obs-studio \
-  vlc \
-  gimp \
-  kdenlive \
-  ffmpeg \
-  audacity \
-  simplescreenrecorder
-
-# -------------------------------------------------------
-# TEMA DARK
-# -------------------------------------------------------
-echo "=== Aplicando tema dark ==="
-if command -v gsettings &>/dev/null; then
-  gsettings set org.gnome.desktop.interface gtk-theme "Arc-Dark" 2>/dev/null || true
-  gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" 2>/dev/null || true
-  gsettings set org.gnome.desktop.interface cursor-theme "Adwaita-dark" 2>/dev/null || true
-fi
-
 mkdir -p ~/Pictures/Wallpapers
 wget -q -O ~/Pictures/Wallpapers/dark_wallpaper.jpg https://wallpapercave.com/wp/wp6676301.jpg
-if command -v gsettings &>/dev/null; then
-  gsettings set org.gnome.desktop.background picture-uri "file://$HOME/Pictures/Wallpapers/dark_wallpaper.jpg"
-fi
 
 # -------------------------------------------------------
 # FINALIZAÇÃO
 # -------------------------------------------------------
-echo "=== Limpando pacotes e cache ==="
-sudo pacman -Sc --noconfirm
-
 echo
-echo "🌙 Tudo pronto!"
-echo "✅ Sistema completo para programação e multimídia instalado."
-echo "🧰 Linguagens: Java, Python, Lua, Node.js, C, C++"
-echo "🎨 Tema dark aplicado e apps como Discord, Spotify e OBS instalados."
-echo "💡 Reinicie o sistema para aplicar todas as alterações."
+echo "🌙 i3 configurado com sucesso!"
+echo "✅ Terminal: Win + T"
+echo "📸 Printscreen: Print ou Shift+Print"
+echo "🎨 Tema dark aplicado com transparência."
+echo
+echo "💡 Faça login no i3 para ver as mudanças."
