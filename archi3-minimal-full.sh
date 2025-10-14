@@ -1,116 +1,138 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# =======================================================
+#  Script Completo de Instalação - Arch Linux
+#  Autor: ChatGPT (by Andre)
+#  Funções:
+#   - Configura ambiente de programação completo
+#   - Instala Yay (AUR)
+#   - Instala linguagens: Java, Python, Lua, Node.js, C, C++
+#   - Instala Flatpak + Flathub
+#   - Instala Discord, Spotify, YT Music
+#   - Instala ferramentas multimídia
+#   - Configura SSH + UFW
+#   - Aplica tema dark completo
+# =======================================================
 
-# install-hamachi-debian.sh
-# Uso: sudo ./install-hamachi-debian.sh
-# Script para Debian/Ubuntu: detecta arquitetura, baixa .deb do Hamachi e instala.
+echo "=== Atualizando o sistema ==="
+sudo pacman -Syu --noconfirm
 
-TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
+echo "=== Instalando pacotes essenciais ==="
+sudo pacman -S --noconfirm \
+  base-devel \
+  git \
+  vim \
+  curl \
+  wget \
+  unzip \
+  zip \
+  p7zip \
+  htop \
+  neofetch \
+  ufw \
+  openssh \
+  flatpak \
+  papirus-icon-theme \
+  arc-gtk-theme \
+  gnome-keyring
 
-echo "==> Verificando privilégio de root..."
-if [ "$EUID" -ne 0 ]; then
-  echo "Este script deve ser executado como root (use sudo)." >&2
-  exit 1
-fi
-
-echo "==> Detectando arquitetura..."
-ARCH=$(dpkg --print-architecture || true)
-case "$ARCH" in
-  amd64|x86_64) PKG_ARCH="amd64" ;;
-  i386|i486|i686) PKG_ARCH="i386" ;;
-  armhf|armv7l) PKG_ARCH="armhf" ;;
-  arm64|aarch64) PKG_ARCH="armhf" ;; # hamachi historically has armhf builds; may not exist for arm64
-  *) PKG_ARCH="amd64" ;; # fallback
-esac
-echo "Arquitetura detectada: $ARCH -> usando pacote: $PKG_ARCH"
-
-echo "==> Instalando dependências (apt update poderá pedir algum tempo)..."
-apt-get update -y
-# lsb-core pode ser necessário em algumas versões; tentamos instalar pacotes úteis
-DEPS=(wget curl ca-certificates lsb-release)
-# lsb-core package exists on some distros; try instalar sem falhar.
-apt-get install -y "${DEPS[@]}" || true
-
-echo "==> Tentando localizar o .deb oficial do Hamachi..."
-HTMLFILE="$TMPDIR/vpn_net_linux.html"
-curl -fsSL "https://vpn.net/linux" -o "$HTMLFILE" || true
-
-# Procura por links para logmein-hamachi_...deb
-DL_URL=$(grep -oE 'https?://[^"]*logmein-hamachi[^"]*\.deb' "$HTMLFILE" | head -n1 || true)
-
-if [ -z "$DL_URL" ]; then
-  echo "Não foi possível extrair link direto do vpn.net/linux. Usando fallback conhecido..."
-  # fallback - versão conhecida (pode mudar com o tempo). Se quiser forçar outra versão, edite aqui.
-  DL_URL="https://www.vpn.net/installers/logmein-hamachi_2.1.0.203-1_amd64.deb"
-  # Ajuste se a arquitetura for i386 ou armhf:
-  if [ "$PKG_ARCH" = "i386" ]; then
-    DL_URL="https://www.vpn.net/installers/logmein-hamachi_2.1.0.203-1_i386.deb"
-  elif [ "$PKG_ARCH" = "armhf" ]; then
-    # Não há garantia de versão ARM; mantenha fallback genérico (pode falhar se não houver build armhf).
-    DL_URL="https://secure.logmein.com/labs/logmein-hamachi_2.1.0.119-1_armhf.deb"
-  fi
-fi
-
-echo "URL detectada: $DL_URL"
-PKGFILE="$TMPDIR/hamachi.deb"
-
-echo "==> Baixando pacote..."
-if ! wget -q -O "$PKGFILE" "$DL_URL"; then
-  echo "Erro ao baixar $DL_URL" >&2
-  exit 2
-fi
-
-echo "==> Instalando pacote .deb..."
-# instalar o .deb (dpkg pode deixar dependências pendentes)
-dpkg -i "$PKGFILE" || true
-
-echo "==> Corrigindo dependências (apt -f install)..."
-apt-get install -y -f
-
-# Tentar habilitar e iniciar o serviço de várias maneiras (systemd ou init.d)
-echo "==> Tentando iniciar/ativar o serviço do Hamachi..."
-if systemctl --version >/dev/null 2>&1; then
-  # se existir unidade systemd criada como LSB wrapper, enable/start
-  if systemctl list-units --type=service --all | grep -qi logmein-hamachi; then
-    systemctl daemon-reload || true
-    systemctl enable --now logmein-hamachi.service || true
-  else
-    # tentar via script SysV
-    if [ -x /etc/init.d/logmein-hamachi ]; then
-      /etc/init.d/logmein-hamachi restart || /etc/init.d/logmein-hamachi start || true
-    fi
-  fi
+# -------------------------------------------------------
+# INSTALAÇÃO DO YAY (AUR HELPER)
+# -------------------------------------------------------
+if ! command -v yay &>/dev/null; then
+  echo "=== Instalando Yay (AUR helper) ==="
+  cd /tmp
+  git clone https://aur.archlinux.org/yay.git
+  cd yay
+  makepkg -si --noconfirm
+  cd ..
+  rm -rf yay
 else
-  if [ -x /etc/init.d/logmein-hamachi ]; then
-    /etc/init.d/logmein-hamachi restart || /etc/init.d/logmein-hamachi start || true
-  fi
+  echo "✅ Yay já está instalado."
 fi
 
-echo "==> Verificando se o binário 'hamachi' está disponível..."
-if ! command -v hamachi >/dev/null 2>&1; then
-  echo "Instalação concluída, mas binário 'hamachi' não foi encontrado no PATH." >&2
-  echo "Verifique o conteúdo do pacote e logs." >&2
-  exit 3
+# -------------------------------------------------------
+# SERVIÇOS DE SISTEMA
+# -------------------------------------------------------
+echo "=== Ativando e iniciando SSH ==="
+sudo systemctl enable sshd
+sudo systemctl start sshd
+
+echo "=== Configurando firewall (UFW) ==="
+sudo systemctl enable ufw
+sudo ufw allow ssh
+sudo ufw enable
+
+# -------------------------------------------------------
+# FLATPAK + FLATHUB
+# -------------------------------------------------------
+echo "=== Configurando Flathub ==="
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+echo "=== Instalando aplicativos Flatpak ==="
+flatpak install -y flathub com.discordapp.Discord
+flatpak install -y flathub com.spotify.Client
+flatpak install -y flathub app.ytmdesktop.ytmdesktop
+
+# -------------------------------------------------------
+# LINGUAGENS E FERRAMENTAS DE PROGRAMAÇÃO
+# -------------------------------------------------------
+echo "=== Instalando linguagens e compiladores ==="
+sudo pacman -S --noconfirm \
+  python python-pip \
+  lua luarocks \
+  nodejs npm \
+  jdk17-openjdk \
+  clang gcc gdb make cmake \
+  pkgconf
+
+echo "=== Configurando variáveis do Java ==="
+echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk' | sudo tee /etc/profile.d/java.sh
+source /etc/profile.d/java.sh
+
+# -------------------------------------------------------
+# IDEs E EDITORES (opcional)
+# -------------------------------------------------------
+echo "=== Instalando VS Code (AUR) ==="
+yay -S --noconfirm visual-studio-code-bin
+
+# -------------------------------------------------------
+# FERRAMENTAS MULTIMÍDIA
+# -------------------------------------------------------
+echo "=== Instalando OBS, GIMP, Kdenlive, VLC, etc. ==="
+sudo pacman -S --noconfirm \
+  obs-studio \
+  vlc \
+  gimp \
+  kdenlive \
+  ffmpeg \
+  audacity \
+  simplescreenrecorder
+
+# -------------------------------------------------------
+# TEMA DARK
+# -------------------------------------------------------
+echo "=== Aplicando tema dark ==="
+if command -v gsettings &>/dev/null; then
+  gsettings set org.gnome.desktop.interface gtk-theme "Arc-Dark" 2>/dev/null || true
+  gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" 2>/dev/null || true
+  gsettings set org.gnome.desktop.interface cursor-theme "Adwaita-dark" 2>/dev/null || true
 fi
 
+mkdir -p ~/Pictures/Wallpapers
+wget -q -O ~/Pictures/Wallpapers/dark_wallpaper.jpg https://wallpapercave.com/wp/wp6676301.jpg
+if command -v gsettings &>/dev/null; then
+  gsettings set org.gnome.desktop.background picture-uri "file://$HOME/Pictures/Wallpapers/dark_wallpaper.jpg"
+fi
+
+# -------------------------------------------------------
+# FINALIZAÇÃO
+# -------------------------------------------------------
+echo "=== Limpando pacotes e cache ==="
+sudo pacman -Sc --noconfirm
+
 echo
-echo "Instalação concluída com sucesso (ou parcialmente). Próximos passos:"
-echo "  # Para logar no seu account LogMeIn:"
-echo "  sudo hamachi login"
-echo "  # Para anexar esse cliente ao seu LogMeIn ID (email):"
-echo "  sudo hamachi attach seu-email@exemplo.com"
-echo "  # Para criar/entrar em rede:"
-echo "  sudo hamachi create MinhaRede senhaDaRede   # (cria rede)"
-echo "  sudo hamachi join ID-da-rede senhaDaRede    # (entra em rede existente)"
-echo
-echo "Comandos úteis de status:"
-echo "  sudo hamachi                       # mostra status"
-echo "  sudo hamachi list                  # lista peers na rede"
-echo
-echo "Se o serviço não estiver rodando, tente inspecionar logs via journalctl ou /var/log/syslog."
-echo
-echo "Referências: página oficial de downloads e instruções de instalação da LogMeIn Hamachi."
-echo " - https://vpn.net/linux (página de downloads)."
-echo " - instruções oficiais: https://support.logmein.com (ex.: instalar via dpkg/wget)."
-exit 0
+echo "🌙 Tudo pronto!"
+echo "✅ Sistema completo para programação e multimídia instalado."
+echo "🧰 Linguagens: Java, Python, Lua, Node.js, C, C++"
+echo "🎨 Tema dark aplicado e apps como Discord, Spotify e OBS instalados."
+echo "💡 Reinicie o sistema para aplicar todas as alterações."
