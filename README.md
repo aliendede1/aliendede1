@@ -5,7 +5,7 @@
 ## Sobre mim
 - 🔭 Atualmente estudando: **C++**  
 - 😎 linguagens dominantes: **C**
-- 🌱 Aprendendo: **Fazer umas Simular coisas no terminal kkk**  
+- 🌱 Aprendendo: **Fazer umas Simulações no terminal kkk**  
 - 👯 Procurando colaborar em projetos **open source**  
 - ⚡ Curiosidade: Amo **tecnologia e pixel art**
 
