@@ -3,9 +3,7 @@
 ---
 
 ## Sobre mim
-- 🔭 Atualmente estudando: **Js,C++**  
-- 😎 linguagens dominantes: **C**
-- 🌱 Aprendendo: **Fazer Site** 
+- 🔭 Atualmente estudando: **C**  
 - 👯 Procurando colaborar em projetos **open source**  
 - ⚡ Curiosidade: Amo **tecnologia e pixel art**
 
