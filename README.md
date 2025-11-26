@@ -3,7 +3,7 @@
 ---
 
 ## Sobre mim
-- 🔭 Atualmente estudando: **C#**  
+- 🔭 Atualmente estudando: **C**  
 - 👯 Procurando colaborar em projetos **open source**  
 - ⚡ Curiosidade: Amo **tecnologia e pixel art**
 
