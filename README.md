@@ -9,8 +9,3 @@
 
 
 ---
-
-## Minhas estatísticas
-![Status](https://github-readme-stats.vercel.app/api?username=aliendede1&show_icons=true&theme=tokyonight)
-
-
